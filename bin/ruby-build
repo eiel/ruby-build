@@ -311,6 +311,7 @@ build_package() {
 
 build_package_standard() {
   local package_name="$1"
+  local options=""
 
   if [ "${MAKEOPTS+defined}" ]; then
     MAKE_OPTS="$MAKEOPTS"
@@ -318,7 +319,18 @@ build_package_standard() {
     MAKE_OPTS="-j 2"
   fi
 
-  { ./configure --prefix="$PREFIX_PATH" $CONFIGURE_OPTS
+  if [[ "Darwin" = "$(uname)" ]]; then
+    MAKE_OPTS=""
+    if echo "${package_name}" | grep "openssl" > /dev/null; then
+      if [[ "x86_64" = "$(uname -m)" ]]; then
+        options="darwin64-x86_64-cc"
+      else
+        options="darwin-i386-cc"
+      fi
+    fi
+  fi
+
+  { ./configure --prefix="$PREFIX_PATH" $CONFIGURE_OPTS $options
     make $MAKE_OPTS
     make install
   } >&4 2>&1
